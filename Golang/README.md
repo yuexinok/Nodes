@@ -8,5 +8,7 @@
 - [输入和输出](./输入和输出.md)
 - [反射](./反射.md)
 - [strings包使用](./strings包.md)
+- [正则](./正则.md)
+- [unicode包](./unicode.md)
 
 
