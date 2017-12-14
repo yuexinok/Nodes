@@ -1,5 +1,6 @@
 # 目录
 
+- [基础知识](./基础知识.md)
 - [包](./包.md)
 - [工具和命令](./工具和命令.md)
 - [数据类型](./数据类型.md)
@@ -15,5 +16,7 @@
 - [path包](./path包.md)
 - [error包](./error包.md)
 - [sort包](./sort包.md)
+- [thrift实战](./thrift.md)
+- [http](./http.md)
 
 
