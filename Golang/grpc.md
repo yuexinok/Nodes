@@ -8,6 +8,12 @@ http://doc.oschina.net/grpc
 
 https://grpc.io/docs/quickstart/go.html
 
+https://godoc.org/google.golang.org/grpc
+
+https://github.com/grpc/grpc-go/tree/master/Documentation
+
+编写protoc文件：https://developers.google.com/protocol-buffers/docs/proto3
+
 ### 安装protoc3：
 
 ```shell
@@ -19,6 +25,8 @@ brew install libtool
 ➜  ~ protoc --version
 libprotoc 3.5.1
 ```
+
+
 
 ### 下载gRPC-go包：
 
@@ -64,11 +72,91 @@ client.go         google.golang.org server.go
 github.com        helloworld
 ```
 
+注：部分包因为翻墙的缘故，需要从github上下载，然后收到创建对应的目录文件
 
+> 1.golang.org\x\net\context，对应的可访问链接：https://github.com/golang/net，里面包含context，dns，http2等一系列资源
+>
+> 2.golang.org/x/text/secure/bidirule，对应的可访问链接：https://github.com/golang/text，里面包含cmd，currency，secure等一系列资源
+>
+> 3.google.golang.org/grpc，对应的可访问链接：https://github.com/grpc/grpc-go，里面包含connectivity，grpclb，grpclog等一系列资源
+>
+> 4.google.golang.org/genproto，对应的可访问链接：https://github.com/google/go-genproto，里面包含googleapis，protobuf等一系列资源
+
+学习：http://www.cnblogs.com/ghj1976/p/4565846.html
 
 ### 编写服务端：
 
+```go
+package main
 
+import (
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"helloworld"
+	"log"
+	"net"
+)
+
+const port = ":50051"
+
+type server struct{}
+
+func (s *server) SayHello(ctx context.Context, in *helloworld.HelloRequest) (*helloworld.HelloReply, error) {
+	return &helloworld.HelloReply{Message: "Hello " + in.Name}, nil
+}
+
+func main() {
+	lis, err := net.Listen("tcp", port)
+	if err != nil {
+		log.Fatalf("创建连接失败:%v", err)
+	}
+
+	s := grpc.NewServer()
+	helloworld.RegisterGreeterServer(s, &server{})
+	s.Serve(lis)
+}
+
+```
+
+### 编写客户端：
+
+```go
+package main
+
+import (
+	"golang.org/x/net/context"
+	"google.golang.org/grpc"
+	"helloworld"
+	"log"
+	"os"
+)
+
+const (
+	address     = "127.0.0.1:50051"
+	defualtName = "world"
+)
+
+func main() {
+	conn, err := grpc.Dial(address, grpc.WithInsecure())
+	if err != nil {
+		log.Fatalf("did not connect:%v", err)
+	}
+	defer conn.Close()
+	c := helloworld.NewGreeterClient(conn)
+	name := defualtName
+
+	if len(os.Args) > 1 {
+		name = os.Args[1]
+	}
+	r, err := c.SayHello(context.Background(), &helloworld.HelloRequest{Name: name})
+
+	if err != nil {
+		log.Fatalf("cound not greet：%v", err)
+	}
+	log.Printf("Greeting:%s", r.Message)
+}
+
+```
 
 
 
