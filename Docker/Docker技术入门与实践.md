@@ -64,6 +64,14 @@ local_topology                 latest              ebb6ac1b94ed        6 months 
 ➜  ~ docker inspect -f {{".RepoTags"}} ubuntu:14.04
 [myunbuntu:latest ubuntu:14.04]
 
+#获取IP地址
+
+➜  docker inspect master-redis | grep IPA
+            "SecondaryIPAddresses": null,
+            "IPAddress": "172.17.0.2",
+                    "IPAMConfig": null,
+                    "IPAddress": "172.17.0.2",
+                   
 #搜索镜像
 ➜  ~ docker search nginx
 NAME                                                   DESCRIPTION                                     STARS               OFFICIAL            AUTOMATED
@@ -415,3 +423,4 @@ docker build - < <dockerfile> 使用指定的dockerfile配置文件，docker以s
 docker port <container> <container port> 查看本地哪个端口映射到container的指定端口，或者用docker ps 也可以看到。
 ```
 
+ 
