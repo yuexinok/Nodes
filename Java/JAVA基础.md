@@ -19,7 +19,7 @@ Hello World
 - 大小写敏感。
 - 源文件名和类名称相同
 
-![image-20180604140022788](/Users/borgxiao/Documents/work/notes/Java/image-20180604140022788.png)
+![image-20180604140022788](images/image-20180604140022788.png)
 
 
 

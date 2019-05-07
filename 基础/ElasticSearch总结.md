@@ -54,7 +54,8 @@ postman
 
 ==> Downloading https://artifacts.elastic.co/downloads/elasticsearch/elasticsear
 
-######################################################################## 100.0%
+
+
 ==> Caveats
 Data:    /usr/local/var/lib/elasticsearch/elasticsearch_borgxiao/
 Logs:    /usr/local/var/log/elasticsearch/elasticsearch_borgxiao.log
