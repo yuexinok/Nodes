@@ -37,3 +37,11 @@ Store 又是由一个 memStore 和 0 个或者多个 storeFile 组成。memStore
 
 来源：https://mp.weixin.qq.com/s/kJbeuu3zqRxQxVN38Z4asA
 
+http://hbasefly.com/
+
+http://abloz.com/hbase/book.html 中文文档
+
+https://hbase.apache.org/
+
+
+
