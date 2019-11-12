@@ -368,6 +368,19 @@ authors = bookList.stream().collect(groupingBy(Book::getAuthor,Collectors.counti
         System.out.println(authors);
 ```
 
+```java
+Map<Integer,List<Integer>> crmCirculateRelationMap = crmCirculateRelations.stream().collect(
+     //直接收集排序   
+  Collectors.groupingBy(
+                CrmCirculateRelation::getReasonId,//key
+                HashMap::new,//map
+                Collectors.mapping(
+                        CrmCirculateRelation::getOption,//元素
+                        Collectors.toList()//list
+                )
+    )
+```
+
 #### 3.2 map和list互转
 
 **利用map的entrySet**，同样foreach的时候也是如此
@@ -395,6 +408,20 @@ List<Employee> employees = persons.stream()
                 .map(p -> new Employee(p.getName(), p.getLastName(), 1000))
                 .collect(Collectors.toList());
 
+```
+
+
+
+## 接口默认方法支持
+
+```java
+interface Iterator<T> { 
+	boolean hasNext();
+	T next();
+	default void remove() {
+     throw new UnsupportedOperationException();
+  }
+}
 ```
 
 

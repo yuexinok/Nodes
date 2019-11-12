@@ -188,7 +188,7 @@ int upNextChapterNumberByCourseId(@Param("courseId") long courseId,@Param("numbe
 </insert>
 ```
 
-
+注：**批量也适用**
 
 ### update：
 
