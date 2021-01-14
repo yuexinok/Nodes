@@ -40,16 +40,85 @@ System.out.println(add.apply(12L,24L));
 
 这类函数还有很多变种，如BiConsumer,DubbleConsumer,IntConsumer等 这些就是明确了类型
 
+#### Predicate
+
+断言 接口只有一个参数，返回boolean类型
+
 ```java
-//断言
 Predicate<Integer> integerPredicate = x -> x > 10;
 System.out.println(integerPredicate.test(11));//true
+Predicate<Boolean> nonNull = Objects::nonNull;
+Predicate<Boolean> isNull = Objects::isNull;
+Predicate<String> isEmpty = String::isEmpty;
+Predicate<String> isNotEmpty = isEmpty.negate();
+```
+
+#### Function
+
+函数 接口有一个参数并且返回一个结果，并附带了一些可以和其他函数组合的默认方法（compose, andThen）
+
+```java
+Function<Integer,String> function = x -> x.toString() + "字符串";
+System.out.println(function.apply(100));
+//注意andThen
+Function<String, Integer> toInteger = Integer::valueOf;
+Function<String, String> backToString = toInteger.andThen(String::valueOf);
+
+backToString.apply("123");     // "123"
+```
+
+#### **Supplier**
+
+同function，只是不接收参数
+
+```java
+Supplier<Person> personSupplier = Person::new;
+personSupplier.get();   // new Person
+```
+
+#### Consumer
+
+```java
 //消费
 Consumer<Integer> integerConsumer = x -> System.out.println(x+10);
 integerConsumer.accept(100);
-//函数
-Function<Integer,String> function = x -> x.toString() + "字符串";
-System.out.println(function.apply(100));
+```
+
+#### Comparator 
+
+Comparator 是老Java中的经典接口， Java 8在此之上添加了多种默认方法：
+
+```java
+Comparator<Person> comparator = (p1, p2) -> p1.firstName.compareTo(p2.firstName);
+
+Person p1 = new Person("John", "Doe");
+Person p2 = new Person("Alice", "Wonderland");
+
+comparator.compare(p1, p2);             // > 0
+comparator.reversed().compare(p1, p2);  // < 0
+```
+
+#### Optional 
+
+Optional 不是函数是接口，这是个用来防止NullPointerException异常的辅助类型
+
+Optional 被定义为一个简单的容器，其值可能是null或者不是null。在Java 8之前一般某个函数应该返回非空对象但是偶尔却可能返回了null，而在Java 8中，不推荐你返回null而是返回Optional。
+
+```java
+Optional<String> optional = Optional.of("bam");
+
+optional.isPresent();           // true
+optional.get();                 // "bam"
+optional.orElse("fallback");    // "bam"
+
+optional.ifPresent((s) -> System.out.println(s.charAt(0)));     // "b"
+```
+
+#### 其他
+
+```java
+
+
 //1元运算
 UnaryOperator<Integer> integerUnaryOperator = x -> x -1 ;
 System.out.println(integerUnaryOperator.apply(10));
@@ -57,6 +126,45 @@ System.out.println(integerUnaryOperator.apply(10));
 BinaryOperator<Integer> integerBinaryOperator = (x,y) -> x-y;
 System.out.println(integerBinaryOperator.apply(10,111));
 ```
+
+### @FunctionInterface
+
+确保你的接口一定达到这个要求，你只需要给你的接口添加 @FunctionalInterface 注解，编译器如果发现你标注了这个注解的接口有多于一个抽象方法的时候会报错的。
+
+```java
+@FunctionalInterface
+public interface MyConverter<F,T> {
+    T convert(F from);
+}
+
+MyConverter<String,Integer> converter = (from) -> Integer.valueOf(from) + 100;
+Integer converted = converter.convert("123");
+System.out.println(converted);
+```
+
+
+
+工厂方式
+
+```java
+public class Person {
+
+    String firstName;
+    String lastName;
+
+    Person(String firstName,String lastName){
+        this.firstName = firstName;
+        this.lastName = lastName;
+    }
+}
+public interface PersonFactory<P extends Person> {
+    P create(String firstName,String lastName);
+}
+PersonFactory<Person> personPersonFactory = Person::new;
+Person b = personPersonFactory.create("borg","xiao");
+```
+
+
 
 
 
@@ -93,6 +201,8 @@ map不同于filter,map重点是转换
 
 ### 3,filter(Predicate p)
 
+过滤通过一个predicate接口来过滤并只保留符合条件的元素，该操作属于中间操作，所以我们可以在过滤后的结果来应用其他Stream操作（比如forEach
+
 ```java
 //filter 过滤流
 List<String> stringList2 = Stream.of("a","b","c").filter( x -> x.equals("a")).collect(toList());
@@ -126,6 +236,8 @@ Track shortestTrack = tracks.stream().
 
 从流中得到一个值，如min,max,count其实就是reduce的一个操作
 
+这是一个最终操作，允许通过指定的函数来讲stream中的多个元素规约为一个元素，规越后的结果是通过Optional接口表示的
+
 ```java
 //reduce通过运算从流中得到一个数据
 Integer sum = Stream.of(1,3,1,2).reduce((x,y)-> x+ y).get();
@@ -133,6 +245,16 @@ System.out.println(sum);//7
 //传递基准值，即起始值，这样有基准也可以直接返回
 Integer sum1 = Stream.of(1,3,1,2).reduce(10,(x,y)-> x+ y);
 System.out.println(sum1);//17
+
+
+Optional<String> reduced =
+    stringCollection
+        .stream()
+        .sorted()
+        .reduce((s1, s2) -> s1 + "#" + s2);
+
+reduced.ifPresent(System.out::println);
+// "aaa1#aaa2#bbb1#bbb2#bbb3#ccc#ddd1#ddd2"
 ```
 
 ### 7,flatMap(Function<? super T, ? extends Stream<? extends R>> mapper)

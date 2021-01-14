@@ -874,6 +874,12 @@ NetWork-Friendly HTTP Upgrade 移动端通信改善HTTP性能的标准。
 - 流量恐慌，SPDY
 - Websocket：Speed+Mobility
 
+在HTTP/2中，在应用层（HTTP2.0）和传输层（TCP或者UDP）之间加了一层：**二进制分帧层**。这是HTTP2中最大的改变
+
+在HTTP1.1协议中，浏览器客户端在同一时间，针对同一域名下的请求有一定数量的限制，超过了这个限制的请求就会被阻塞。而**多路复用**允许同时通过单一的 HTTP2.0 连接发起多重的“请求-响应”消息。
+
+HTTP/1.1的header带有大量信息，而且每次都要重复发送。HTTP/2 为了减少这部分开销，采用了HPACK 头部压缩算法对Header进行压缩。
+
 ### WebDAV：
 
 web服务器管理文件。基于web的分布式创作和版本控制。
@@ -889,4 +895,38 @@ Common Gateway Interface：通用网关接口，指web服务器在接收到客�
 在服务器上创建动态内容的程序，对比CGI，CGI由于每次接到请求，程序都要跟着启动一次。因此访问量过大，web服务器压力非常大。而servlet的运行和web服务器相同的进程中，所以负载较小。
 
 ![servlet对比CGI](./images/http5.png)
+
+## 单点登录：
+
+1）每个域名只能带上自己的sessionId
+
+2）二级域名，可以使用cookie设置根域名有效。
+
+登录过程：
+
+1）浏览器，访问 A.com的时候，先访问跳转到oss.com。没有session，则返回登录页面。
+
+2）输入密码登录到oss.com ,给浏览器返回登录后的oss_session。
+
+3）oss.com创建一个令牌，跳转发给A.com
+
+4）A.com把令牌再传入oss.com验证令牌是否一致。验证通过，创建a_session，返回到浏览器。
+
+5）浏览器再次访问A.com,因为有a_sessionId所以可以正常使用。
+
+6）浏览器访问B.com 没有b_session,
+
+7）浏览器跳转到oss.com，因为有oss_session,
+
+8）oss.com创建一个令牌，跳转发给B.com
+
+9）B.com把令牌再传入oss.com验证令牌是否一致，验证通过，创建b_session.返回给浏览器。
+
+https://yq.aliyun.com/articles/636281
+
+
+
+![](./images/oss.png)
+
+https://www.cnblogs.com/ywlaker/p/6113927.html
 

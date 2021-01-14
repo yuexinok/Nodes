@@ -37,3 +37,67 @@ Window ==> Preferences ==> Java ==> Compiler ==> Error/Warnings ==> Potential pr
 
 https://www.cnblogs.com/duanxz/p/3511695.html
 
+## Hessian序列化：
+
+是这一种支持动态类型，跨语言，基于对象网路传输的协议。可以被C++,Python等反序列化。比原生的二进制大小减少50%
+
+
+
+## 3，JSON序列化：
+
+javascript Object Notation,轻量级的数据交互格式。
+
+## 4，transient
+
+```java
+//标记该属性不能被序列化
+private transient int age;
+```
+
+## 5，ObjectOutputStram
+
+ObjectOutputStream
+
+ObjectInputStream
+
+我们一般使用ObjectOutputStream的`writeObject`方法把一个对象进行持久化。再使用ObjectInputStream的`readObject`从持久化存储中把对象读取出来。
+
+## 6，Externalizble
+
+Externalizable继承了Serializable，该接口中定义了两个抽象方法：`writeExternal()`与`readExternal()`。当使用Externalizable接口来进行序列化与反序列化的时候需要开发人员重写`writeExternal()`与`readExternal()`方法。由于上面的代码中，并没有在这两个方法中定义序列化实现细节，所以输出的内容为空。
+
+
+
+## 7，总结
+
+1、在Java中，只要一个类实现了`java.io.Serializable`接口，那么它就可以被序列化。
+
+2、通过`ObjectOutputStream`和`ObjectInputStream`对对象进行序列化及反序列化
+
+3、虚拟机是否允许反序列化，不仅取决于类路径和功能代码是否一致，一个非常重要的一点是两个类的序列化 ID 是否一致（就是 `private static final long serialVersionUID`）
+
+4、序列化并不保存静态变量。
+
+5、要想将父类对象也序列化，就需要让父类也实现`Serializable` 接口。
+
+6、Transient 关键字的作用是控制变量的序列化，在变量声明前加上该关键字，可以阻止该变量被序列化到文件中，在被反序列化后，transient 变量的值被设为初始值，如 int 型的是 0，对象型的是 null。
+
+7、服务器端给客户端发送序列化对象数据，对象中有一些数据是敏感的，比如密码字符串等，希望对该密码字段在序列化时，进行加密，而客户端如果拥有解密的密钥，只有在客户端进行反序列化时，才可以对密码进行读取，这样可以一定程度保证序列化对象的数据安全。
+
+8、ArrayList实现了Serializable接口，但是
+
+```java
+public class ArrayList<E> extends AbstractList<E>
+        implements List<E>, RandomAccess, Cloneable, java.io.Serializable
+{
+    private static final long serialVersionUID = 8683452581122892189L;
+  //元素不能被序列化
+    transient Object[] elementData; // non-private to simplify nested class access
+    private int size;
+}
+```
+
+实际情况这里虽然限制了，但是它复写了writeObject 和 readObject 方法。所以可以序列化。
+
+ArrayList实际上是动态数组，每次在放满以后自动增长设定的长度值，如果数组自动增长长度设为100，而实际只放了一个元素，那就会序列化99个null元素。为了保证在序列化的时候不会将这么多null同时进行序列化，ArrayList把元素数组设置为transient。
+

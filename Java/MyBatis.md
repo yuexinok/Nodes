@@ -186,6 +186,17 @@ int upNextChapterNumberByCourseId(@Param("courseId") long courseId,@Param("numbe
 <insert id="insert" useGeneratedKeys="true" keyProperty="group.id" keyColumn="f_group_id">
    
 </insert>
+
+<!-- 批量插入 --> 
+<insert id="batchInsert" parameterType="java.util.List" useGeneratedKeys="true"> 
+  <selectKey resultType="long" keyProperty="id" order="AFTER"> 
+    SELECT LAST_INSERT_ID() 
+  </selectKey> 
+  insert into tbl_emp (emp_id, emp_name, gender,email, d_id) values 
+  <foreach collection="list" item="emps" index="index" separator=",">
+    ( #{emps.empId},#{emps.empName},#{emps.gender},#{emps.email},#{emps.dId} ) 
+  </foreach> 
+</insert>
 ```
 
 注：**批量也适用**
@@ -204,6 +215,18 @@ int upNextChapterNumberByCourseId(@Param("courseId") long courseId,@Param("numbe
             #{group.id}
         </foreach>
     </update>
+
+<!-- 使用set语句 -->
+<update id="updateByPrimaryKeySelective" parameterType="Employee"> 
+  update tbl_emp
+  <set>
+    <if test="empName != null"> emp_name = #{empName,jdbcType=VARCHAR}, </if> 
+    <if test="gender != null"> gender = #{gender,jdbcType=CHAR}, </if>
+    <if test="email != null"> email = #{email,jdbcType=VARCHAR}, </if> 
+    <if test="dId != null"> d_id = #{dId,jdbcType=INTEGER}, </if> 
+  </set> 
+  where emp_id = #{empId,jdbcType=INTEGER}
+</update>
 ```
 
 ### delete：
@@ -248,6 +271,26 @@ $和#的区别，一般情况安全情况使用#。
   <otherwise>
   </otherwise>
 </choose>
+
+<select id="getEmpList_choose" resultMap="empResultMap" parameterType="com.gupaoedu.crud.bean.Employee"> 
+  SELECT * FROM tbl_emp e 
+  <where> 
+    <choose>
+      <when test="empId !=null"> 
+        e.emp_id = #{emp_id, jdbcType=INTEGER}
+      </when> 
+      <!-- 注意 like的用法  concat-->
+      <when test="empName != null and empName != ''"> 
+        AND e.emp_name LIKE CONCAT(CONCAT('%', #{emp_name, jdbcType=VARCHAR}),'%') 
+      </when>
+	 <when test="email != null ">
+     AND e.email = #{email, jdbcType=VARCHAR}
+      </when> 
+      <otherwise> 
+</otherwise>
+    </choose> 
+  </where>
+</select>
 ```
 
 ### where语句
@@ -273,6 +316,21 @@ $和#的区别，一般情况安全情况使用#。
 
 ```xml
 <trim prefix="set" suffixOverrides="," prefixOverrides="and">..</trim>
+
+
+<insert id="insertSelective" parameterType="Employee">
+  insert into tbl_emp 
+  <trim prefix="(" suffix=")" suffixOverrides=","> 
+    <if test="empId != null"> emp_id, </if> 
+    <if test="empName != null"> emp_name, </if> 
+    <if test="dId != null"> d_id, </if> 
+  </trim> 
+  <trim prefix="values (" suffix=")" suffixOverrides=","> 
+    <if test="empId != null"> #{empId,jdbcType=INTEGER}, </if>
+    <if test="empName != null"> #{empName,jdbcType=VARCHAR}, </if>
+    <if test="dId != null"> #{dId,jdbcType=INTEGER}, </if> 
+  </trim> 
+</insert>
 ```
 
 prefix添加前缀，suffixOverrides去掉后面默认, prefixOverrides去掉前面的and
@@ -285,9 +343,43 @@ sex in
  #{sex}
 </foreach>
 
+<delete id="deleteByList" parameterType="java.util.List"> 
+  delete from tbl_emp where emp_id in 
+  <foreach collection="list" item="item" open="(" separator="," close=")"> 
+    #{item.empId,jdbcType=VARCHAR} 
+  </foreach> 
+</delete>
 ```
 
 open和close配合是
+
+### like 安全操作：
+
+#### 使用concat：
+
+```xml
+<when test="empName != null and empName != ''"> 
+  AND e.emp_name LIKE CONCAT(CONCAT('%', #{emp_name, jdbcType=VARCHAR}),'%') 
+</when>
+```
+
+#### 使用bind标签：
+
+```xml
+<select id="getEmpList_bind" resultType="empResultMap" parameterType="Employee"> 
+  <bind name="pattern1" value="'%' + empName + '%'" /> 
+  <bind name="pattern2" value="'%' + email + '%'" /> 
+  SELECT * FROM tbl_emp 
+  <where>
+    <if test="empId != null"> emp_id = #{empId,jdbcType=INTEGER}, </if> 
+    <if test="empName != null and empName != ''"> AND emp_name LIKE #{pattern1} </if> 
+    <if test="email != null and email != ''"> AND email LIKE #{pattern2} </if> 
+  </where> 
+  ORDER BY emp_id 
+</select>
+```
+
+
 
 ## 运行原理
 
