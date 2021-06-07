@@ -421,6 +421,11 @@ docker build <path> 寻找path路径下名为的Dockerfile的配置文件，使�
 docker build -t repo[:tag] 同上，可以指定repo和可选的tag
 docker build - < <dockerfile> 使用指定的dockerfile配置文件，docker以stdin方式获取内容，使用此配置生成新的image
 docker port <container> <container port> 查看本地哪个端口映射到container的指定端口，或者用docker ps 也可以看到。
+docker attach 容器ID 进到容器内
+docker exec 容器ID 进到容器内
+
+#进入容器
+➜  ~ docker exec -it myrabbitmq /bin/bash
 ```
 
  

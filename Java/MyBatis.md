@@ -233,7 +233,7 @@ int upNextChapterNumberByCourseId(@Param("courseId") long courseId,@Param("numbe
 
 
 
-### 参数：
+### 参数安全：
 
 $和#的区别，一般情况安全情况使用#。
 
@@ -379,6 +379,12 @@ open和close配合是
 </select>
 ```
 
+### 小于等于的安全引入
+
+```xml
+<![CDATA[  xx ]]>
+```
+
 
 
 ## 运行原理
@@ -470,3 +476,9 @@ public class MyBatisPlugin implements Interceptor {
 ```
 
 注：并未生效
+
+## 缓存
+
+一级缓存：默认开启的，sqlsession级别，
+
+二级缓存：默认不开启，不建议使用，mapper的namespace级别，即多个sqlsession共享

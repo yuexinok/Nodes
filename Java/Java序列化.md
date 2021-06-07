@@ -1,6 +1,29 @@
 # Java序列化
 
-## 1，serialVersionUID作用
+## Java原生序列化
+
+```java
+Person person = new Person();
+person.setAge(18);
+person.setName("ydw");
+person.setId(1L);
+//自定义字节输出流
+ByteArrayOutputStream os = new ByteArrayOutputStream();
+//自定义一个对象输出流
+ObjectOutputStream out = new ObjectOutputStream(os);
+//把对象写入输出流,进行序列化
+out.writeObject(person);
+byte[] bytes = os.toByteArray();
+
+//自己数组输入流
+ByteArrayInputStream is = new ByteArrayInputStream(bytes);
+//执行反序列化,从字节流中获取对象
+ObjectInputStream inputStream = new ObjectInputStream(is);
+Person ydw = (Person) inputStream.readObject();
+System.out.println(ydw);
+```
+
+### serialVersionUID作用
 
 serialVersionUID适用于Java的序列化机制。简单来说，Java的序列化机制是通过判断类的serialVersionUID来验证版本一致性的。在进行反序列化时，JVM会把传来的字节流中的serialVersionUID与本地相应实体类的serialVersionUID进行比较，如果相同就认为是一致的，可以进行反序列化，否则就会出现序列化版本不一致的异常，即是**InvalidCastException**。
 
@@ -37,24 +60,14 @@ Window ==> Preferences ==> Java ==> Compiler ==> Error/Warnings ==> Potential pr
 
 https://www.cnblogs.com/duanxz/p/3511695.html
 
-## Hessian序列化：
-
-是这一种支持动态类型，跨语言，基于对象网路传输的协议。可以被C++,Python等反序列化。比原生的二进制大小减少50%
-
-
-
-## 3，JSON序列化：
-
-javascript Object Notation,轻量级的数据交互格式。
-
-## 4，transient
+### transient
 
 ```java
 //标记该属性不能被序列化
 private transient int age;
 ```
 
-## 5，ObjectOutputStram
+### ObjectOutputStram
 
 ObjectOutputStream
 
@@ -62,13 +75,11 @@ ObjectInputStream
 
 我们一般使用ObjectOutputStream的`writeObject`方法把一个对象进行持久化。再使用ObjectInputStream的`readObject`从持久化存储中把对象读取出来。
 
-## 6，Externalizble
+### Externalizble
 
 Externalizable继承了Serializable，该接口中定义了两个抽象方法：`writeExternal()`与`readExternal()`。当使用Externalizable接口来进行序列化与反序列化的时候需要开发人员重写`writeExternal()`与`readExternal()`方法。由于上面的代码中，并没有在这两个方法中定义序列化实现细节，所以输出的内容为空。
 
-
-
-## 7，总结
+### 总结
 
 1、在Java中，只要一个类实现了`java.io.Serializable`接口，那么它就可以被序列化。
 
@@ -100,4 +111,83 @@ public class ArrayList<E> extends AbstractList<E>
 实际情况这里虽然限制了，但是它复写了writeObject 和 readObject 方法。所以可以序列化。
 
 ArrayList实际上是动态数组，每次在放满以后自动增长设定的长度值，如果数组自动增长长度设为100，而实际只放了一个元素，那就会序列化99个null元素。为了保证在序列化的时候不会将这么多null同时进行序列化，ArrayList把元素数组设置为transient。
+
+## RPC-对象序列化
+
+对象序列化encode：将对象转换为二进制流
+
+对象反序列化decode：将二进制流转换为java中的对象
+
+https://blog.csdn.net/ydwyyy/article/details/74452383
+
+| 框架名称              | 性能排序 | 优点                                                        | 缺点                                                         | 是否推荐                        |
+| --------------------- | -------- | ----------------------------------------------------------- | ------------------------------------------------------------ | ------------------------------- |
+| Protocal Buffers      | 1        | 序列化快;开源                                               | 代码侵入性性强,需要相关的配置文件,无法直接使用**Java**等面向对象编程语言中的对象 | 否                              |
+| Json/fastJson/JackSon | 2        | 序列化快,小巧,传输数据格式使用范围广,开源夸平台,夸语言      | 对泛型的支持不是很好                                         | 极力推荐                        |
+| Hessian               | 4        | 夸平台,夸语言,序列化的使用流程与java内置序列化类似,容易上手 | 性能略低                                                     | 推荐                            |
+| Java内置序列化        | 5        | 使用简单                                                    | 由于是该语言的特殊序列化方式,其他语言没有办法进行解析,夸平台不支持,且性能较低 | 不支持                          |
+| Xstream               | 3        | 把对象转化成xml最好用的**专业**工具                         | 使用不是很广泛,因为现在大多数的数据传输都通过**json**居多    | **xml**数据传输序列化则强烈推荐 |
+
+### Protocol Buffers
+
+https://www.jianshu.com/p/b1f18240f0c7
+
+`required`:必须赋值的字段
+`optional`:可有可无的字段
+`repeated`:可重复字段(变长字段),类似于数组
+
+### FastJson
+
+javascript Object Notation,轻量级的数据交互格式。
+
+```java
+Person person = new Person();
+person.setAge(18);
+person.setName("ydw");
+person.setId(1L);
+String ydwStr = JSON.toJSONString(person);
+System.out.println(ydwStr);
+Person ydwObj = JSON.parseObject(ydwStr, Person.class);
+System.out.println(ydwObj);
+```
+
+### Hessian
+
+是这一种支持动态类型，跨语言，基于对象网路传输的协议。可以被C++,Python等反序列化。比原生的二进制大小减少50%
+
+```java
+Person person = new Person();
+person.setAge(18);
+person.setName("ydw");
+person.setId(1L);
+ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+HessianOutput hessianOutput = new HessianOutput(byteArrayOutputStream);
+//序列化
+hessianOutput.writeObject(person);
+byte[] bytes = byteArrayOutputStream.toByteArray();
+//反序列化
+ByteArrayInputStream byteArrayInputStream = new ByteArrayInputStream(bytes);
+HessianInput hessianInput = new HessianInput(byteArrayInputStream);
+Person ydw = (Person) hessianInput.readObject();
+System.out.println(ydw);
+```
+
+### Xstream
+
+xml和对象的转换
+
+```java
+Person person = new Person();
+person.setAge(18);
+person.setName("ydw");
+person.setId(1L);
+
+XStream xStream = new XStream(new DomDriver());
+xStream.alias("person",Person.class);
+String xml = xStream.toXML(person);
+System.out.println(xml);
+
+Person fromXML = (Person) xStream.fromXML(xml);
+System.out.println(fromXML);
+```
 
