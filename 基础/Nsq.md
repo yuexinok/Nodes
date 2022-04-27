@@ -347,7 +347,7 @@ REQ <message_id> <timeout>\n
 
 ### 关于requeue
 
-requeue后，requeue数量会增加，同时nsq消息数量也会增加（只针对消费者端，channel总的消息数是不变的,上层的记录的实在真实的总数，如requeued Timed Out等数量），但是消息ID，和消息时间不变，只是尝试次数增加。attempts 首次的时候为1 后面不断累加
+requeue后，requeue数量会增加，同时nsq消息数量也会增加（只针对消费者端，channel总的消息数是不变的,上层的记录的实在真实的总数，如requeued Timed Out等数量），但是**消息ID，和消息时间不变，只是尝试次数增加。attempts 首次的时候为1 后面不断累加**
 
 ```shell
 	

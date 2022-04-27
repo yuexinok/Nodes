@@ -413,7 +413,7 @@ docker rmi <image...> 删除一个或多个image
 docker start/stop/restart <container> 开启/停止/重启container
 docker start -i <container> 启动一个container并进入交互模式
 docker attach <container> attach一个运行中的container
-docker run <image> <command> 使用image创建container并执行相应命令，然后停止
+docker run <image> <command> 使用image创建container并执行相应命令，然后停止  --name指定容器名称
 docker run -i -t <image> /bin/bash 使用image创建container并进入交互模式, login shell是/bin/bash
 docker run -i -t -p <host_port:contain_port> 将container的端口映射到宿主机的端口
 docker commit <container> [repo:tag] 将一个container固化为一个新的image，后面的repo:tag可选

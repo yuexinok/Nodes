@@ -115,6 +115,45 @@ com.spring.service.*.*(..))表示 com.spring.service 包下，返回值为任意
 
 限制的所有方法。 这也是为什么一般前面有一个*
 
+```ini
+*：匹配任何数量字符；
+..：匹配任何数量字符的重复，如在类型模式中匹配任何数量子包；而在方法参数模式中匹配任何数量参数。
++：匹配指定类型的子类型；仅能作为后缀放在类型模式后边。
+```
+
+![aop1](./images/aop1.webp)
+
+```java
+任意公共方法的执行：
+  execution(public * *(..))
+任何一个以“set”开始的方法的执行：
+  execution(* set*(..))
+AccountService 接口的任意方法的执行：
+  execution(* com.xyz.service.AccountService.*(..))
+定义在service包里的任意方法的执行： 
+  execution(* com.xyz.service.*.*(..))
+定义在service包和所有子包里的任意类的任意方法的执行：
+  execution(* com.xyz.service..*.*(..))
+第一个*表示匹配任意的方法返回值， ..(两个点)表示零个或多个，第一个..表示service包及其子包,第二个*表示所有类, 第三个*表示所有方法，第二个..表示方法的任意参数个数
+定义在pointcutexp包和所有子包里的JoinPointObjP2类的任意方法的执行：
+  execution(* com.test.spring.aop.pointcutexp..JoinPointObjP2.*(..))")
+pointcutexp包里的任意类： 
+  within(com.test.spring.aop.pointcutexp.*)
+pointcutexp包和所有子包里的任意类：
+  within(com.test.spring.aop.pointcutexp..*)
+实现了Intf接口的所有类,如果Intf不是接口,限定Intf单个类：
+  this(com.test.spring.aop.pointcutexp.Intf)
+当一个实现了接口的类被AOP的时候,用getBean方法必须cast为接口类型,不能为该类的类型
+  带有@Transactional标注的所有类的任意方@within(org.springframework.transaction.annotation.Transactional)
+@target(org.springframework.transaction.annotation.Transactional)
+带有@Transactional标注的任意方法@annotation(org.springframework.transaction.annotation.Transactional)
+@within和@target针对类的注解,@annotation是针对方法的注解
+  参数带有@Transactional标注的方法：@args(org.springframework.transaction.annotation.Transactional)
+参数为String类型(运行是决定)的方法： args(String)
+```
+
+
+
 ### 1）注解方式：
 
 ```java

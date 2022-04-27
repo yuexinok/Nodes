@@ -772,6 +772,18 @@ fetch.min.bytes=1
 
 1）设置session.timeout.ms 为较低的值
 
+#### 重开始位置消费
+
+更换groupId,指定"auto.offset.reset"参数的值为earliest；spring.kafka.consumer.auto-offset-reset
+
+#### 不消费问题解决思路
+
+如果生产者先部署，消费端后部署，而消费端又是从最近消费开始，则数据会报错，且
+
+Error sending fetch request (sessionId=INVALID, epoch=INITIAL) to node 6: {}. org.apache.kafka.common.errors.DisconnectException: null
+
+解决思路是：先创建好topic,然后部署消费端，再部署生产者
+
 ### 订阅topic
 
 1) topic支持多个

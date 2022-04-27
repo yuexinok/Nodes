@@ -395,7 +395,7 @@ java -jar cfr_0_125.jar switchDemoString.class --decodestringswitch false
 
 JConsole工具是JDK自带的可视化监控工具。查看java应用程序的运行概况、监控堆信息、永久区使用 情况、类加载情况等。
 
-### visualvm：
+### jvisualvm：
 
 **监控本地Java进程：**
 
