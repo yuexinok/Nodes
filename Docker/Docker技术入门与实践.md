@@ -428,4 +428,13 @@ docker exec 容器ID 进到容器内
 ➜  ~ docker exec -it myrabbitmq /bin/bash
 ```
 
- 
+###  复制文件
+
+```shell
+//复制容器的文件到 主机
+➜  ~ docker cp -a mongo:/js-yaml.js  ~/Downloads
+
+//复制主机文件到容器  -a即包括目录
+➜  ~ docker cp -a ~/Downloads/dump mongo:/
+```
+

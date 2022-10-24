@@ -1213,7 +1213,26 @@ public final class WordCountDemo {
     </dependency>
 ```
 
+#### 提交方式
 
+```ini
+spring.kafka.listener.ack-mode
+
+@KafkaListener(topics = "${kafka.crm.sync.data.init:crm_sync_data_init}", groupId = "${crm.sync.consumer.group:crm-sync-data:v1}", errorHandler = "kafkaMessageErrorHandler",
+            concurrency = "${init.all.consumer.size:8}",
+            properties = {"max.poll.records:${crm.sync.all.pool.size:10}",
+                    "max.poll.interval.ms:${init.all.pool.ms:120000}"},
+            autoStartup = "${crm.sync.data.all.autoStart:true}",
+            clientIdPrefix = "init_all")
+```
+
+**MANUAL**	poll()拉取一批消息，处理完业务后，手动调用Acknowledgment.acknowledge()先将offset存放到map本地缓存，在下一次poll之前从缓存拿出来批量提交
+**MANUAL_IMMEDIATE**	每处理完业务手动调用Acknowledgment.acknowledge()后立即提交
+**RECORD**	当每一条记录被消费者监听器（ListenerConsumer）处理之后提交
+**BATCH**	当每一批poll()的数据被消费者监听器（ListenerConsumer）处理之后提交
+**TIME**	当每一批poll()的数据被消费者监听器（ListenerConsumer）处理之后，距离上次提交时间大于TIME时提交
+**COUNT**	当每一批poll()的数据被消费者监听器（ListenerConsumer）处理之后，被处理record数量大于等于COUNT时提交
+**COUNT_TIME**	TIME或COUNT满足其中一个时提交
 
 
 
