@@ -561,6 +561,62 @@ mysql> select replace("st1str1","st","qa");
 
 space(N)生成N个空格字符串
 
+#### like查询
+
+%标识匹配多个任意字符。
+
+**_标识匹配一个任意字符**。
+
+```mysql
+mysql> select * from t_car;
++----+--------------+-------+-------+
+| id | name         | color | owner |
++----+--------------+-------+-------+
+|  1 | å¥¥è¿ª       | red   |     1 |
+|  2 | å®é©¬       | black |     1 |
++----+--------------+-------+-------+
+2 rows in set (0.02 sec)
+
+mysql> select * from t_car where color like "r%";
++----+--------------+-------+-------+
+| id | name         | color | owner |
++----+--------------+-------+-------+
+|  1 | å¥¥è¿ª       | red   |     1 |
++----+--------------+-------+-------+
+1 row in set (0.00 sec)
+
+mysql> select * from t_car where color like "r_";
+Empty set (0.00 sec)
+
+mysql> select * from t_car where color like "re_";
++----+--------------+-------+-------+
+| id | name         | color | owner |
++----+--------------+-------+-------+
+|  1 | å¥¥è¿ª       | red   |     1 |
++----+--------------+-------+-------+
+1 row in set (0.00 sec)
+```
+
+#### 正则查询
+
+##### regexp、not regexp
+
+正则匹配
+
+##### rlike、not relike
+
+```mysql
+mysql> select * from t_car where color rlike "^r";
++----+--------------+-------+-------+
+| id | name         | color | owner |
++----+--------------+-------+-------+
+|  1 | å¥¥è¿ª       | red   |     1 |
++----+--------------+-------+-------+
+1 row in set (0.02 sec)
+```
+
+
+
 ### 数字函数
 
 **DIV**整除 SELECT 5 DIV 2 == 2
@@ -1949,3 +2005,51 @@ https://baijiahao.baidu.com/s?id=1637367920353569708
 为了防止数据重复写入，一般设计的时候 表主键不自增，
 
 而是在提交页面的表单页面，先通过后端接口生成订单号(主键)，然后提交数据，这种就算提交点击了多次，也可以避免重复。还有类似token的作用
+
+## 工具
+
+### 终止终端输入
+
+如果在终端执行查询或者其他，但是不想执行了或者想终止，可以输入\c取消
+
+```mysql
+mysql> select user()\c
+mysql> select user()
+    -> \c
+mysql>
+```
+
+```mysql
+mysql> use test2
+Reading table information for completion of table and column names
+You can turn off this feature to get a quicker startup with -A
+
+Database changed
+#获取当前所在数据库
+mysql> select database();
++------------+
+| database() |
++------------+
+| test2      |
++------------+
+1 row in set (0.00 sec)
+```
+
+### 查询binlog日志
+
+```mysql
+mysql> show binary logs;
+ERROR 2006 (HY000): MySQL server has gone away
+No connection. Trying to reconnect...
+Connection id:    2831
+Current database: test2
+
++---------------+-----------+-----------+
+| Log_name      | File_size | Encrypted |
++---------------+-----------+-----------+
+| binlog.000032 |       179 | No        |
+| binlog.000033 |       768 | No        |
++---------------+-----------+-----------+
+2 rows in set (0.27 sec)
+```
+

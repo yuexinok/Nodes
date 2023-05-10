@@ -837,3 +837,41 @@ public interface InitializingBean {
 }
 ```
 
+## scope
+
+spring容器自带两种作用域：singleton和prototype,
+
+spring web新增三种：request,session,application
+
+还可以自定义scope：
+
+```java
+package org.springframework.beans.factory.config;
+
+import org.springframework.beans.factory.ObjectFactory;
+import org.springframework.lang.Nullable;
+
+public interface Scope {
+    Object get(String var1, ObjectFactory<?> var2);
+
+    @Nullable
+    Object remove(String var1);
+
+    void registerDestructionCallback(String var1, Runnable var2);
+
+    @Nullable
+    Object resolveContextualObject(String var1);
+
+    @Nullable
+    String getConversationId();
+}
+```
+
+1）实现该接口
+
+2）注册到容器
+
+```java
+org.springframework.beans.factory.config.ConfigurableBeanFactory
+  registerScope()
+```

@@ -700,6 +700,81 @@ auto-aof-rewrite-min-size 64mb
 
 2、虽然 AOF 提供了多种同步的频率，默认情况下，每秒同步一次的频率也具有较 高的性能。在高并发的情况下，RDB 比 AOF 具好更好的性能保证。
 
+#### AOF文件格式
+
+```shell
+➜  redis cat appendonly.aof
+*2 #标识包含两个命令
+$6 #标识命令包含字符数
+SELECT #命令
+$1 #标识命令包含字符数
+0 #命令 这里就是 选择数据
+*3 #标识包含三个命令(三段) set key6 122
+$3 #3个字符
+set #命令
+$4 #4个字符
+key6 
+$3 #3个字符
+122
+➜  redis pwd
+/usr/local/var/db/redis
+```
+
+
+
+127.0.0.1:6379> set key7 x ex 1000
+
+被分为两条命令 且 过期时间为真实的到期时间
+
+```shell
+*3
+$3
+set
+$4
+key7
+$1
+x
+*3
+$9
+PEXPIREAT
+$4
+key7
+$13
+1671003722874
+```
+
+#### AOF重写
+
+```shell
+127.0.0.1:6379> incr key8
+(integer) 1
+127.0.0.1:6379> incr key8
+(integer) 2
+127.0.0.1:6379> incr key8
+(integer) 3
+127.0.0.1:6379> incr key8
+(integer) 4
+127.0.0.1:6379> incr key8
+(integer) 5
+127.0.0.1:6379> incr key8
+(integer) 6
+127.0.0.1:6379> incr key8
+(integer) 7
+```
+
+重写会合并成一条set命令
+
+重写频率
+
+```ini
+auto‐aof‐rewrite‐min‐size 64mb //aof文件至少要达到64M才会自动重写，文件太小恢复速度本来就 很快，重写的意义不大 
+auto‐aof‐rewrite‐percentage 100 //aof文件自上一次重写后文件大小增长了100%则再次触发重写
+```
+
+AOF重写redis会fork出一个子进程去做(与bgsave命令类似)，不会对redis正常命令处理有太多影响
+
+
+
 ## 集群：
 
 ### 主从复制：
@@ -1036,4 +1111,199 @@ NVM 的三大特点：性能高、容量大、数据可以持久化保存。软�
 这款 NVM 内存产品给软件提供了两种使用模式，分别是 Memory 模式和 App Direct 模式。在 Memory 模式时，Redis 可以利用 NVM 容量大的特点，实现大容量实例，保存更多数据。在使用 App Direct 模式时，Redis 可以直接在持久化内存上进行数据读写，在这种情况下，Redis 不用再使用 RDB 或 AOF 文件了，数据在机器掉电后也不会丢失。而且，实例可以直接使用持久化内存上的数据进行恢复，恢复速度特别快。
 
 NVM 内存是近年来存储设备领域中一个非常大的变化，它既能持久化保存数据，还能像内存一样快速访问，这必然会给当前基于 DRAM 和硬盘的系统软件优化带来新的机遇。现在，很多互联网大厂已经开始使用 NVM 内存了，希望你能够关注这个重要趋势，为未来的发展做好准备。
+
+## 特殊命令
+
+### scan
+
+三个参数：
+
+参数1：cursor可以理解为从哪个开始
+
+参数2：要检索的key的匹配名字
+
+参数3：本次要从多少个key里面去检索，**注意这里不是要获取的总量**。
+
+因为key是无序的，所以本命令并不能完全保证可以遍历出所有的key,如果遍历期间出现添加和删除等操作，可能导致检索到重复数据或者漏掉数据。
+
+```shell
+127.0.0.1:6379> scan 0 match key* count 1
+1) "8"
+2) (empty list or set)
+127.0.0.1:6379> scan 0 match key* count 100
+1) "0"
+2) 1) "key4"
+   2) "key3"
+   3) "key2"
+   4) "key1"
+   5) "key5"
+127.0.0.1:6379> scan 0 match key* count 10
+1) "9"
+2) 1) "key4"
+   2) "key3"
+   3) "key2"
+   4) "key1"
+127.0.0.1:6379> scan 9 match key* count 10
+1) "0"
+2) 1) "key5"
+#这里可以看到真实情况下key的顺序是无序的
+127.0.0.1:6379> scan 0 match * count 10
+1) "9"
+2)  1) "\xac\xed\x00\x05t\x00\x04key1"
+    2) "q1"
+    3) "name"
+    4) "k2"
+    5) "key4"
+    6) "key3"
+    7) "key2"
+    8) "myset"
+    9) "ucount"
+   10) "key1"
+```
+
+### info查看redis信息
+
+查看redis服务运行信息，分为 9 大块，每个块都有非常多的参数，这 9 个块分别是: 
+
+Server 服务器运行的环境参数 
+
+Clients 客户端相关信息 
+
+Memory 服务器运行内存统计数据 
+
+Persistence 持久化信息 
+
+Stats 通用统计数据 
+
+Replication 主从复制相关信息 
+
+CPU CPU 使用情况 
+
+Cluster 集群信息 
+
+KeySpace 键值对统计数量信息
+
+```shell
+127.0.0.1:6379> info
+# Server
+redis_version:4.0.9
+redis_git_sha1:00000000
+redis_git_dirty:0
+redis_build_id:e0c8d37381c486c6
+redis_mode:standalone
+os:Darwin 21.6.0 x86_64
+arch_bits:64
+multiplexing_api:kqueue
+atomicvar_api:atomic-builtin
+gcc_version:4.2.1
+process_id:7538
+run_id:0a909a5d199c8c3de034d8ea9c39aa1bb41d6659
+tcp_port:6379
+uptime_in_seconds:4162785
+uptime_in_days:48
+hz:10
+lru_clock:10055305
+executable:/usr/local/opt/redis/bin/redis-server
+config_file:/usr/local/etc/redis.conf
+
+# Clients
+connected_clients:1  # 正在连接的客户端数量
+client_longest_output_list:0
+client_biggest_input_buf:0
+blocked_clients:0
+
+# Memory
+used_memory:1078784 # Redis分配的内存总量(byte)，包含redis进程内部的开销和数据占用的内 存
+used_memory_human:1.03M  # Redis分配的内存总量(Kb，human会展示出单位)
+used_memory_rss:724992  # 向操作系统申请的内存大小(Mb)（这个值一般是大于used_memor y的，因为Redis的内存分配策略会产生内存碎片）
+used_memory_rss_human:708.00K
+used_memory_peak:1078832  # redis的内存消耗峰值(byte)
+used_memory_peak_human:1.03M
+used_memory_peak_perc:100.00%
+used_memory_overhead:1031694
+used_memory_startup:981264
+used_memory_dataset:47090
+used_memory_dataset_perc:48.29%
+total_system_memory:17179869184
+total_system_memory_human:16.00G
+used_memory_lua:37888
+used_memory_lua_human:37.00K
+maxmemory:0  # 配置中设置的最大可使用内存值(byte),默认0,不限制
+maxmemory_human:0B
+maxmemory_policy:noeviction  # 当达到maxmemory时的淘汰策略
+mem_fragmentation_ratio:0.67
+mem_allocator:libc
+active_defrag_running:0
+lazyfree_pending_objects:0
+
+# Persistence
+loading:0
+rdb_changes_since_last_save:4
+rdb_bgsave_in_progress:0
+rdb_last_save_time:1670999446
+rdb_last_bgsave_status:ok
+rdb_last_bgsave_time_sec:0
+rdb_current_bgsave_time_sec:-1
+rdb_last_cow_size:0
+aof_enabled:0
+aof_rewrite_in_progress:0
+aof_rewrite_scheduled:0
+aof_last_rewrite_time_sec:-1
+aof_current_rewrite_time_sec:-1
+aof_last_bgrewrite_status:ok
+aof_last_write_status:ok
+aof_last_cow_size:0
+
+# Stats
+total_connections_received:1
+total_commands_processed:19
+instantaneous_ops_per_sec:0 # 每秒执行多少次指令
+total_net_input_bytes:723
+total_net_output_bytes:10504
+instantaneous_input_kbps:0.00
+instantaneous_output_kbps:0.00
+rejected_connections:0
+sync_full:0
+sync_partial_ok:0
+sync_partial_err:0
+expired_keys:0
+expired_stale_perc:0.00
+expired_time_cap_reached_count:0
+evicted_keys:0
+keyspace_hits:5
+keyspace_misses:1
+pubsub_channels:0
+pubsub_patterns:0
+latest_fork_usec:25222
+migrate_cached_sockets:0
+slave_expires_tracked_keys:0
+active_defrag_hits:0
+active_defrag_misses:0
+active_defrag_key_hits:0
+active_defrag_key_misses:0
+
+# Replication
+role:master
+connected_slaves:0
+master_replid:2bf470bf1b626742f52b50dce4cb74e1e480dd66
+master_replid2:0000000000000000000000000000000000000000
+master_repl_offset:0
+second_repl_offset:-1
+repl_backlog_active:0
+repl_backlog_size:1048576
+repl_backlog_first_byte_offset:0
+repl_backlog_histlen:0
+
+# CPU
+used_cpu_sys:776.59
+used_cpu_user:322.87
+used_cpu_sys_children:0.01
+used_cpu_user_children:0.00
+
+# Cluster
+cluster_enabled:0
+
+# Keyspace
+db0:keys=16,expires=0,avg_ttl=0
+```
 
